@@ -37,11 +37,12 @@ func (srv reviewService) CreateReview(ctx context.Context, req *pb.CreateReviewR
 	resp, err := srv.orderClient.CheckOrderIsHandled(ctx, &pb.CheckOrderIsHandledRequest{
 		ProductId: req.GetProductId(),
 	})
+	log.Println("product id: ", req.GetProductId())
 	if err != nil {
 		return nil, err
 	}
 	if !resp.GetIsBought() {
-		return nil, errors.New("un authorization")
+		return nil, errors.New("Sản phẩm này chưa được mua")
 	}
 
 	// auth
@@ -52,15 +53,17 @@ func (srv reviewService) CreateReview(ctx context.Context, req *pb.CreateReviewR
 
 	id, _ := strconv.ParseInt(claims.GetId(), 10, 64)
 
-	reviewID, err := srv.queries.InsertReview(ctx, repository.InsertReviewParams{
+	review, err := srv.queries.InsertReview(ctx, repository.InsertReviewParams{
 		UserID:    id,
 		ProductID: req.GetProductId(),
 		NumStar:   int32(req.GetNumStar()),
+		Content:   req.GetContent(),
 	})
 	if err != nil {
 		return nil, err
 	}
 
+	listImage := []string{}
 	for _, dataChunk := range req.GetImageDataChunk() {
 		thumbnail, err := uploadImage(ctx, dataChunk, srv.imageClient)
 		if err != nil {
@@ -68,20 +71,63 @@ func (srv reviewService) CreateReview(ctx context.Context, req *pb.CreateReviewR
 			continue
 		}
 		err = srv.queries.InsertImage(ctx, repository.InsertImageParams{
-			ReviewID: int64(reviewID),
+			ReviewID: review.ID,
 			ImageUrl: thumbnail,
 		})
+		if err == nil {
+			listImage = append(listImage, thumbnail)
+		}
 	}
 
 	// bought
 	return &pb.CreateReviewResponse{
-		Message: "Tạo thành công",
+		Message: "Thêm review thành công",
+		Review: &pb.Review{
+			ReviewId:  review.ID,
+			UserId:    id,
+			ProductId: req.GetProductId(),
+			ImageUrl:  listImage,
+			NumStar:   review.NumStar,
+			Content:   review.Content,
+		},
 	}, nil
 }
 
-func (srv reviewService) GetAllReview(context.Context, *pb.CreateReviewRequest) (*pb.CreateReviewResponse, error) {
-	return &pb.CreateReviewResponse{
-		Message: "",
+func (srv reviewService) GetAllReviewByProductID(ctx context.Context, req *pb.GetAllReviewByProductIDRequest) (*pb.GetAllReviewByProductIDResponse, error) {
+
+	reviews, err := srv.queries.GetAllReviewByProductID(ctx, req.GetProductId())
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]*pb.Review, 0, len(reviews))
+	for _, review := range reviews {
+		// get image
+		images, _ := srv.queries.GetImagesByOrderID(ctx, review.ID)
+
+		result = append(result, &pb.Review{
+			ReviewId:  review.ID,
+			UserId:    review.UserID,
+			ProductId: review.ProductID,
+			ImageUrl:  images,
+			NumStar:   review.NumStar,
+			Content:   review.Content,
+		})
+	}
+
+	return &pb.GetAllReviewByProductIDResponse{
+		ListReview: result,
+	}, nil
+}
+
+func (srv reviewService) DeleteReview(ctx context.Context, req *pb.DeleteReviewRequest) (*pb.DeleteReviewResponse, error) {
+	err := srv.queries.DeleteReview(ctx, req.GetReviewId())
+	if err != nil {
+		return nil, err
+	}
+
+	return &pb.DeleteReviewResponse{
+		Message: "Xóa thành công",
 	}, nil
 }
 

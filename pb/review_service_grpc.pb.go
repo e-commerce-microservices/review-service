@@ -27,7 +27,7 @@ type ReviewServiceClient interface {
 	CreateReview(ctx context.Context, in *CreateReviewRequest, opts ...grpc.CallOption) (*CreateReviewResponse, error)
 	UpdateReview(ctx context.Context, in *UpdateReviewRequest, opts ...grpc.CallOption) (*UpdateReviewResponse, error)
 	DeleteReview(ctx context.Context, in *DeleteReviewRequest, opts ...grpc.CallOption) (*DeleteReviewResponse, error)
-	GetAllReview(ctx context.Context, in *CreateReviewRequest, opts ...grpc.CallOption) (*CreateReviewResponse, error)
+	GetAllReviewByProductID(ctx context.Context, in *GetAllReviewByProductIDRequest, opts ...grpc.CallOption) (*GetAllReviewByProductIDResponse, error)
 }
 
 type reviewServiceClient struct {
@@ -74,9 +74,9 @@ func (c *reviewServiceClient) DeleteReview(ctx context.Context, in *DeleteReview
 	return out, nil
 }
 
-func (c *reviewServiceClient) GetAllReview(ctx context.Context, in *CreateReviewRequest, opts ...grpc.CallOption) (*CreateReviewResponse, error) {
-	out := new(CreateReviewResponse)
-	err := c.cc.Invoke(ctx, "/ecommerce.ReviewService/GetAllReview", in, out, opts...)
+func (c *reviewServiceClient) GetAllReviewByProductID(ctx context.Context, in *GetAllReviewByProductIDRequest, opts ...grpc.CallOption) (*GetAllReviewByProductIDResponse, error) {
+	out := new(GetAllReviewByProductIDResponse)
+	err := c.cc.Invoke(ctx, "/ecommerce.ReviewService/GetAllReviewByProductID", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -91,7 +91,7 @@ type ReviewServiceServer interface {
 	CreateReview(context.Context, *CreateReviewRequest) (*CreateReviewResponse, error)
 	UpdateReview(context.Context, *UpdateReviewRequest) (*UpdateReviewResponse, error)
 	DeleteReview(context.Context, *DeleteReviewRequest) (*DeleteReviewResponse, error)
-	GetAllReview(context.Context, *CreateReviewRequest) (*CreateReviewResponse, error)
+	GetAllReviewByProductID(context.Context, *GetAllReviewByProductIDRequest) (*GetAllReviewByProductIDResponse, error)
 	mustEmbedUnimplementedReviewServiceServer()
 }
 
@@ -111,8 +111,8 @@ func (UnimplementedReviewServiceServer) UpdateReview(context.Context, *UpdateRev
 func (UnimplementedReviewServiceServer) DeleteReview(context.Context, *DeleteReviewRequest) (*DeleteReviewResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteReview not implemented")
 }
-func (UnimplementedReviewServiceServer) GetAllReview(context.Context, *CreateReviewRequest) (*CreateReviewResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetAllReview not implemented")
+func (UnimplementedReviewServiceServer) GetAllReviewByProductID(context.Context, *GetAllReviewByProductIDRequest) (*GetAllReviewByProductIDResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAllReviewByProductID not implemented")
 }
 func (UnimplementedReviewServiceServer) mustEmbedUnimplementedReviewServiceServer() {}
 
@@ -199,20 +199,20 @@ func _ReviewService_DeleteReview_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ReviewService_GetAllReview_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateReviewRequest)
+func _ReviewService_GetAllReviewByProductID_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAllReviewByProductIDRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ReviewServiceServer).GetAllReview(ctx, in)
+		return srv.(ReviewServiceServer).GetAllReviewByProductID(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/ecommerce.ReviewService/GetAllReview",
+		FullMethod: "/ecommerce.ReviewService/GetAllReviewByProductID",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ReviewServiceServer).GetAllReview(ctx, req.(*CreateReviewRequest))
+		return srv.(ReviewServiceServer).GetAllReviewByProductID(ctx, req.(*GetAllReviewByProductIDRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -241,8 +241,8 @@ var ReviewService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _ReviewService_DeleteReview_Handler,
 		},
 		{
-			MethodName: "GetAllReview",
-			Handler:    _ReviewService_GetAllReview_Handler,
+			MethodName: "GetAllReviewByProductID",
+			Handler:    _ReviewService_GetAllReviewByProductID_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

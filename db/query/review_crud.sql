@@ -4,9 +4,10 @@ INSERT INTO
     review (
         "user_id",
         "product_id",
-        "num_star"
+        "num_star",
+        "content"
     )
-VALUES ($1, $2, $3) RETURNING "id";
+VALUES ($1, $2, $3, $4) RETURNING  *;
 
 -- name: InsertImage :exec
 
@@ -19,7 +20,8 @@ SELECT
     "user_id",
     "product_id",
     "num_star",
-    "image_url"
+    "image_url",
+    "content"
 FROM review
     INNER JOIN image ON review.id = image.review_id
 WHERE review.id = $1;
@@ -27,3 +29,11 @@ WHERE review.id = $1;
 -- name: DeleteReview :exec
 
 DELETE FROM review WHERE id = $1;
+
+-- name: GetAllReviewByProductID :many
+SELECT * FROM review
+WHERE "product_id" = $1;
+
+-- name: GetImagesByOrderID :many
+SELECT "image_url" FROM "image"
+WHERE "review_id" = $1;

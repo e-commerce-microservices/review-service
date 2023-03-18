@@ -3,7 +3,8 @@ CREATE TABLE
         "id" serial8 PRIMARY KEY,
         "user_id" serial8 NOT NULL,
         "product_id" serial8 NOT NULL,
-        "num_star" integer NOT NULL DEFAULT(5)
+        "num_star" integer NOT NULL DEFAULT(5),
+        "content" text NOT NULL DEFAULT 'Tuyệt vời'
     );
 
 CREATE TABLE
